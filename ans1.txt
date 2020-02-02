@@ -1,0 +1,69 @@
+1. man -k <word>
+2. mv: /usr/bin/mv /usr/local/cs/bin/mv /usr/share/man/man1p/mv.1p.gz /usr/share/man/man1/mv.1.gz
+   command used: whereis mv
+   sh: /usr/bin/sh /usr/share/man/man1p/sh.1p.gz /usr/share/man/man1/sh.1.gz
+   command used: whereis sh
+3. ar(1), ar(1p), pr(1), pr(1p), tr(1), tr(1p)
+   command used: 
+   man -k ^[a-z]r$
+4. /usr/bin/emacs-24.3
+   command used:
+   ls -l /usr/bin/emacs
+   ls -l /etc/alternatives/emacs
+   ls -l /usr/bin/emacs-24.3
+5. Version number of /usr/bin/gcc : gcc version 4.8.5 20150623 (Red Hat 4.8.5-39) (GCC) 
+   Version number of plain gcc: gcc version 9.2.0 (GCC) 
+   Command used: /usr/bin/gcc -v
+   gcc -v
+   They are not the same version, because they have different version numbers.
+6. chmod u+sx means give permission of setting user or group ID on execution(s) and execution(x) to the user who owns it(u).
+   chmod o-w means remove the permission of writing(w) from other users not in the file's group(o).
+7. command used:
+   man find
+   -mtime n
+              File's data was last modified n*24 hours ago.  See the  comments
+              for -atime to understand how rounding affects the interpretation
+              of file modification times.
+   find /usr/local/cs -type d -mtime 28 (28 because 4 weeks equal to 28 days)
+8. Number of symbolic links: 280
+   Command used: find /usr/bin -type l | wc -l
+9. The file is librom1394.so.0.3.0
+   Command used: ls -alt /usr/lib64
+10. /usr/share/i18n/locales
+    Command used: man locale
+    Output: /usr/share/i18n/locales
+              	Usual default path for locale definition files.
+11. downcase-dwim, downcase-region, downcase-word
+    Emacs command: C-h a, then search "downcase"
+12. C-M-r: C-M-r runs the command isearch-backward-regexp (found in global-map)
+    Emacs command: C-h k, then type "C-M-r"
+    C-M-s: C-M-s runs the command isearch-forward-regexp (found in global-map)
+    Emacs command: C-h k, then type "C-M-s"
+    C-M-t: C-M-t runs the command transpose-sexps (found in global-map)
+    Emacs command: C-h k, then type "C-M-t"
+    C-M-u: C-M-u runs the command backward-up-list (found in global-map)
+    Emacs command: C-h k, then type "C-M-u"
+    C-M-v: C-M-v runs the command scroll-other-window (found in global-map)
+    Emacs command: C-h k, then type "C-M-v"
+13. C-g runs the command keyboard-quit (found in global-map), which is an interactive compiled Lisp function in ‘simple.el’.
+
+    It is bound to C-g.
+
+    (keyboard-quit)
+
+    Signal a ‘quit’ condition.
+    During execution of Lisp code, this character causes a quit directly.
+    At top-level, as an editor command, this simply beeps.
+    Emacs commdn: C-h k, then type "C-g"
+14. The command yank reinsert ("paste") the last stretch of killed text; it can be invoked through C-y.
+    Emacs command: C-h f, then type "yank"
+15. The dired command in emacs lists more information than the ls -l command in shell. Specifically, it lists information about .(the current directory) and ..(parent directory); moveover, it shows the target that each link points to. Also, the dired command shows in the first line "total used in directory 326744 available 12473816".
+    Command used in shell:
+    ls -l /usr/bin
+    Command used in emacs:
+    C-x d /usr/bin
+
+
+
+
+

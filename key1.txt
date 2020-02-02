@@ -1,0 +1,79 @@
+wget https://web.cs.ucla.edu/classes/fall19/cs35L/assign/assign1.html > exer1.html
+cp exer1.html exer2.html
+cp exer1.html exer3.html
+
+1.1
+1. emacs exer1.html
+2. C-s H T M L Enter
+3. C-s s c a v e n g e r Enter
+4. C-s s e l f - r e f e r e n t i a l Enter
+5. C-s a r r o w Enter
+6. M-f M-f M-f M-f M-f M-f
+7. M-b M-b M-b M-b M-b M-b M-b M-b M-b M-b M-b M-b M-b 
+8. C-e C-a
+9. I did not use arrow keys
+10. C-x C-c
+
+1.2
+1. emacs exer2.html
+2. M-g g 18 Enter C-k
+3. C-s D E Enter C-a C-k
+4. C-s < ! Enter C-a C-k C-n C-k C-n C-k
+5. C-s < ! Enter C-d C-d C-d C-d C-d C-d C-d
+   C-s < ! Enter C-a C-k C-n C-k C-n C-k C-n C-k
+   C-s < ! Enter C-a C-k
+
+1.3
+1. emacs exer3.html
+2. C-s A s Enter M-f M-f DEL 4 2
+   C-s A s Enter M-f M-f DEL 4 2
+3. C-r U T Enter C-f C-f C-d DEL DEL DEL S - A S C I I
+4. C-M-s [ ^ [ : a s c i i : ] ] Enter C-a C-k
+   C-M-s [ ^ [ : a s c i i : ] ] Enter
+5. M-g g 1 Enter C-s < / o l > Enter Enter
+6. C-x C-c y
+   diff -u exer1.html exer3.html >exer3.diff
+
+1.4
+1. cat exer2.html exer2.diff >exer4.html
+2. emacs exer4.html
+3. M-> C-r < ! Enter C-b C-b C-@ C-e M-w M-g g 1 C-s l a b Enter C-n C-y
+4. C-s D E L E T E Enter C-a C-f C-@ C-e M-w M-g g 1 C-s L e a r n Enter C-n C-y
+   C-s Y o u SP c a n SP l e a r n Enter C-a C-f C-@ C-e C-n C-n M-w M-g g 1 C-s S u b m i t Enter C-n C-y
+   C-s < ! - - - - > Enter C-a C-b C-b C-b C-b C-b C-b C-b C-@ C-f C-f C-f C-f C-f C-f C-f M-w M-g g 1 C-s n o t h i n g Enter C-f C-y
+   C-s O r SP m a y be Enter C-p C-a C-f C-@ C-n C-n C-n C-e M-w M-g g 1 C-s n o t h i n g Enter C-n C-y
+   C-s e n d Enter C-a C-f C-@ C-e M-w M-g g 1 C-s < / b o Enter C-n C-n C-y
+5. C-s - - - Enter C-a C-@ M-> C-w
+6. C-x u
+7. - - - > C-r - - - SP e x e r 1 Enter C-a < ! - -
+8. M-g g 1 C-s < o l > M-% < o L > y y y y y y y
+Answer: Replaced 7 occurrences
+9. C-x C-c y
+   diff -u exer1.html exer4.html >exer4.diff
+
+1.5
+1. emacs
+   C-x d Enter + j u n k Enter
+2. C-x d j u n k Enter C-x C-f h e l l o . c
+3. M-x c o m p i l e Enter g c c SP h e l l o . c SP - o SP h e l l o
+4. C-x b h e l l o - o u t Enter C-u M-! . / h e l l o Enter
+5. C-@ C-e M-w C-x C-f k e y 1 . t x t Enter M-> C-y
+   EOF on input
+
+1.6
+1. emacs
+   C-x b Enter
+2. ( r a n d o m SP " 2 0 5 - 1 2 3 - 2 4 5 " ) C-j
+   Result: -1774688100706451541
+3. ( s e t q SP x SP ( r a n d o m ) ) C-j
+   Result: 689915476659993425
+   ( s e t q SP y SP ( r a n d o m ) ) C-j
+   Result: 2098449597969868001
+4. ( * SP x SP y ) C-j
+   Result: 2189499444552943153
+   The result is not mathematically correct. In fact, the product of 689915476659993425 and 2098449597969868001 should be approximately 1.44*10^36; however, the one calculated in emacs is almost the same with y, which is obviously incorrect. This is due to the bit overflow in this machine.
+5. M-: ( * SP x SP y ) Enter
+   Result: 2189499444552943153 (#o171425242236437443061, #x1e62aa24f47e4631)
+   The output is the same with the C-j command. But it shows the number in octal and hexadecimal form also.
+6. The two random integers are not truly random. The computer must have some mechanisms to generate the "random number", and the fact that some mechanisms exist is not random in nature. Therefore, these integers are pseudo-random. 
+7. It depends on the multiplication capacity of the machine. The reason of the incorrect result is due to overflow. That is, the result of multiplication cannot be expressed by the number of bits allowed in this machine, and is therefore cut short to fit in the bits. As a result, the probability of incorrect result is #(product exceeds the range)/#(total number of possible integers)^2. Given the size of random number generated in emacs, the chance of overflow is approximately 1 in this case.
