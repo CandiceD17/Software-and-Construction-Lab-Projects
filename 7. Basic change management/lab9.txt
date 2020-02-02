@@ -1,0 +1,176 @@
+1. Get a copy of the Diffutils repository
+$ git clone ~eggert/src/gnu/diffutils
+And the current directory contains a directory called diffutils.
+
+
+2. Get a log of changes to Diffutils’ master branch
+$ cd diffutils/
+$ git log > git-log.txt
+$ less git-log.txt
+This is a log keeping track of the modifications made to diffutils.
+
+
+3. Generate a list of tags
+$ git tag > git-tag.txt
+$ less git-tag.txt 
+This gives a list of tag objects.
+
+
+4. Find the commit
+$ emacs git-log.txt
+emacs: C-s maint: q
+Then, copy the commit hash number 62ca21c8c1a5aa3488589dcb191a4ef04ae9ed4f
+$ git show 62ca21c8c1a5aa3488589dcb191a4ef04ae9ed4f > quote-patch.txt
+Use the show command to save the output diff file into quote-patch.txt
+
+
+5. Check out version 3.0
+$ git checkout v3.0 -b my_v3
+Checkout to version 3.0, then create a new branch my_v3 to edit it.
+
+
+6. Apply the patch
+$ patch -p1 < quote-patch.txt 
+I ignored three patch by hitting the return and y, and these files are HACKING, doc/diffutils.texi, and man/help2man.
+I also got several error messages when applying the patch:
+patching file README
+Hunk #1 FAILED at 9.
+Hunk #3 FAILED at 60.
+2 out of 3 hunks FAILED -- saving rejects to file README.rej
+
+patching file README-hacking
+Hunk #1 FAILED at 19.
+1 out of 1 hunk FAILED -- saving rejects to file README-hacking.rej
+
+patching file cfg.mk
+Hunk #1 FAILED at 29.
+1 out of 1 hunk FAILED -- saving rejects to file cfg.mk.rej
+
+patching file src/diff.c
+Hunk #10 FAILED at 876.
+Hunk #11 FAILED at 906.
+Hunk #12 FAILED at 942.
+3 out of 14 hunks FAILED -- saving rejects to file src/diff.c.rej
+
+patching file src/diff3.c
+Hunk #6 FAILED at 433.
+1 out of 9 hunks FAILED -- saving rejects to file src/diff3.c.rej
+
+
+7. Check the status
+$ git status
+
+# On branch my_v3
+# Changes not staged for commit:
+#   (use "git add <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#	modified:   NEWS
+#	modified:   README
+#	modified:   TODO
+...
+# Untracked files:
+#   (use "git add <file>..." to include in what will be committed)
+#
+#	NEWS.orig
+#	README-hacking.orig
+#	README-hacking.rej
+#	README.orig
+...
+no changes added to commit (use "git add" and/or "git commit -a")
+
+
+I modified lots of files with the patch, but these files are not tracked in the staging area yet. So the change is not finalized in this step. I need to use git add and git commit to save the changes to git.
+
+
+8. Emacs functions
+Checking the documentation, I find out that:
+vc-diff: (C-x v =) Compare the work files in the current VC fileset with the versions you started from.
+vc-revert: (C-x v u) Revert the work file(s) in the current VC fileset to the last revision (vc-revert).
+These can be used to reverse changes to files.
+diff-apply-hunk: (C-c C-a) Apply this hunk to its target file (diff-apply-hunk). 
+And this simply means to keep the changes.
+diff-goto-source: (C-c C-c) Go to the source file and line corresponding to this hunk.
+
+
+9. Undo changes
+First, revert changes for files not end in .c using C-x v u.
+For example, $ emacs NEWS; C-x v u yes, C-x C-c
+Continue this process for README, TODO, doc/diagmeet.note, ms/config.bat, ms/config.site, po/en.po, src/diff.h, src/system.h, tests/help-version
+
+Then, examine the .c file one by one to undo changes that are not related to character-strings.
+For exmaple, $ emacs src/analyze.c; 
+C-x v = (to see the changes)
+C-u C-c C-a (undo the changes if they are not related to strings)
+Continue this process for src/cmp.c, src/context.c, src/diff.c, src/diff3.c, src/dir.c, src/ifdef.c, src/io.c, src/sdiff.c, src/side.c, src/util.c
+
+10. find .rej files
+$ ls ./src | grep -E "*.c.rej"
+diff.c.rej
+diff3.c.rej
+$ emacs src/diff.c.rej
+Open another emacs window in terminal, $ emacs src/diff.c; search the right place to insert the patch by C-s, then save the document.
+Repeat this process for diff3.c.rej
+
+
+11. Remove all untracked files
+$ git clean -f
+And the untracked files are removed.
+
+12. Output a patch
+Type $ git status, I find out that only the following files are modified:
+# On branch my_v3
+# Changes not staged for commit:
+#   (use "git add <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#	modified:   src/cmp.c
+#	modified:   src/diff.c
+#	modified:   src/diff3.c
+#	modified:   src/dir.c
+#	modified:   src/sdiff.c
+#	modified:   src/util.c
+no changes added to commit (use "git add" and/or "git commit -a")
+The number of file modified is indeed 6.
+
+Then, make a patch file.
+$ git diff > quote-3.0-patch.txt
+$ wc -l quote-3.0-patch.txt 
+335 quote-3.0-patch.txt, verifying that the size of patch file seems correct.
+
+
+13. Build modified version
+Change to lnxsrv05 to build this version.
+$ ./bootstrap
+$ ./configure
+$ make
+$ make check
+
+Then, test the correctness of this program:
+$ src/diff . -
+The output is:
+src/diff: cannot compare '-' to a directory
+$ src/diff --help
+And all ` are correctly modified to '.
+
+
+14. Do a sanity test
+First, create two directories to hold the source code:
+$ mkdir diffutils-3.0 diffutils-3.0-patch
+Then, copy my source code into the later directory:
+$ cp -r src/*.c diffutils-3.0-patch
+Then, change to the original 3.0 branch and copy the source code:
+$ git clone ~eggert/src/gnu/diffutils diffutils_1
+$ cd diffutils_1
+]$ cp -r src/*.c ../diffutils/diffutils-3.0
+Then, compare the differences with my src/diff:
+$ src/diff -pru diffutils-3.0 diffutils-3.0-patch > quote-3.0-test.txt
+
+
+15. Compare differences
+$ diff -u quote-3.0-test.txt quote-3.0-patch.txt > comp.diff
+$ less comp.diff
+The differences are only due to the use of the patch (which converts ` to '), and other differences between header files and order of hunks are trivial. Therefore, these differences are innocuous.
+
+
+
