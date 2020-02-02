@@ -1,0 +1,178 @@
+1. Write sript for tr2b.c:
+First test if number of argument is 3 (the function itself also counts as an argument), then test if there is repeating characters in from, then test if from and to have the same length.
+After this, use getchar() to read input and putchar() to output the converted characters.
+
+2. Write sript for tr2u.c:
+First test if number of argument is 3 (the function itself also counts as an argument), then test if there is repeating characters in from, then test if from and to have the same length.
+After this, allocate 1 byte buffer to read the input. Use read(0, buf, 1) and write (1, buf, 1) to input and output the translated characters.
+
+3. strace command:
+(1) First compile tr2b.c and tr2u.c:
+    $ gcc -o tr2b tr2b.c
+    $ gcc -o tr2u tr2u.c
+(2) Then create a file containing at least 5,000,000 bytes:
+    $ head --bytes=5000000 /dev/urandom > test.txt
+(3) Use the strace command to test system calls when copying one file to another:
+    $ strace -c -o strace_b.txt ./tr2b '12345' 'abcde' <test.txt > output_b.txt
+This is the output in strace_b.txt:
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 57.77    0.000539           1       611           write
+ 29.15    0.000272           0       613           read
+  5.04    0.000047           5         9           mmap
+  1.71    0.000016           8         2           open
+  1.50    0.000014          14         1           execve
+  1.18    0.000011           4         3           mprotect
+  0.86    0.000008           4         2           close
+  0.86    0.000008           2         4           fstat
+  0.86    0.000008           8         1         1 access
+  0.75    0.000007           7         1           brk
+  0.32    0.000003           3         1           arch_prctl
+  0.00    0.000000           0         1           munmap
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000933                  1249         1 total
+   $ strace -c -o strace_u.txt ./tr2u '12345' 'abcde' <test.txt > output_u.txt
+This is the output in strace_u.txt:
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 54.91   22.973604           5   5000000           write
+ 45.09   18.866013           4   5000002           read
+  0.00    0.000044           6         7           mmap
+  0.00    0.000034           9         4           mprotect
+  0.00    0.000017           9         2           open
+  0.00    0.000012          12         1           munmap
+  0.00    0.000008           4         2           close
+  0.00    0.000008           4         2           fstat
+  0.00    0.000007           7         1         1 access
+  0.00    0.000007           7         1           execve
+  0.00    0.000004           4         1           arch_prctl
+  0.00    0.000003           3         1           brk
+------ ----------- ----------- --------- --------- ----------------
+100.00   41.839761              10000024         1 total
+(4) Test system calls when copying a file to terminal:
+  $ strace -c -o strace_b1.txt ./tr2b '12345' 'abcde' <test.txt
+This is the output in strace_b1.txt:
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 97.78    0.129450           7     19845           write
+  2.11    0.002795           5       613           read
+  0.04    0.000049           5         9           mmap
+  0.02    0.000025           8         3           mprotect
+  0.02    0.000020           5         4           fstat
+  0.01    0.000015           8         2           open
+  0.01    0.000012          12         1           munmap
+  0.01    0.000007           4         2           close
+  0.01    0.000007           7         1         1 access
+  0.00    0.000006           6         1           execve
+  0.00    0.000004           4         1           brk
+  0.00    0.000003           3         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.132393                 20483         1 total
+  $ strace -c -o strace_u1.txt ./tr2u '12345' 'abcde' <test.txt
+This is the output in strace_u1.txt:
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 57.64   24.888506           5   5000000           write
+ 42.36   18.292724           4   5000002           read
+  0.00    0.000054           8         7           mmap
+  0.00    0.000032           8         4           mprotect
+  0.00    0.000013          13         1           munmap
+  0.00    0.000011           6         2           open
+  0.00    0.000008           4         2           close
+  0.00    0.000005           3         2           fstat
+  0.00    0.000004           4         1           arch_prctl
+  0.00    0.000000           0         1           brk
+  0.00    0.000000           0         1         1 access
+  0.00    0.000000           0         1           execve
+------ ----------- ----------- --------- --------- ----------------
+100.00   43.181357              10000024         1 total
+In general, tr2u (the unbuffered version) makes one call to read and one call to write for every character; thus it runs much more slower than tr2b (buffered version), which collect as many bytes as possible and read more than single byte at a time.
+
+4. time command:
+(1) When copying from a file to another:
+  $ time cat test.txt | ./tr2b '12' 'ab' > out_timeb.txt
+This is the output of this command:
+real	0m0.177s
+user	0m0.115s
+sys	0m0.019s
+  $ time cat test.txt | ./tr2u '12' 'ab' > out_timeu.txt
+This is the output of this command:
+real	0m12.172s
+user	0m3.354s
+sys	0m8.811s
+(2) Compare result:
+The unbuffered version(tr2u) is slower than the buffered one(tr2b), because it makes significantly greater amount of system calls. Therefore, it is better to use getchar() and putchar() than using read() and write().
+
+-----------------------------------------------------------------
+
+First, generate files with 0, 100, 10000, 1000000 lines
+touch test1.txt
+base64 /dev/urandom | head -n 100 > test2.txt
+base64 /dev/urandom | head -n 10000 > test3.txt
+base64 /dev/urandom | head -n 1000000 > test4.txt
+
+Then, test sfrob and sfrobu and sfrobu -f separately with these files. For test1.txt, all of these command output empty files.
+These are the results with test2, test3, and test4.
+
+test2 (100 lines)
+time ./sfrob < test2.txt > output_text.txt
+
+real	0m0.004s
+user	0m0.002s
+sys	0m0.001s
+time ./sfrobu < test2.txt > output_text.txt
+
+real	0m0.028s
+user	0m0.009s
+sys	0m0.017s
+time ./sfrobu -f < test2.txt > output_text.txt 
+
+real	0m0.027s
+user	0m0.004s
+sys	0m0.021s
+
+test3(10000 lines)
+time ./sfrob < test3.txt > output_text.txt
+
+real	0m0.054s
+user	0m0.037s
+sys	0m0.008s
+time ./sfrobu < test3.txt > output_text.txt
+
+real	0m1.387s
+user	0m0.294s
+sys	0m1.084s
+time ./sfrobu -f < test3.txt > output_text.txt 
+
+real	0m2.072s
+user	0m0.466s
+sys	0m1.594s
+
+test4(1000000 lines)
+time ./sfrob < test4.txt > output_text.txt
+
+real	0m4.618s
+user	0m3.732s
+sys	0m0.221s
+time ./sfrobu < test4.txt > output_text.txt
+
+real	1m54.424s
+user	0m26.735s
+sys	1m27.011s
+time ./sfrobu -f < test4.txt > output_text.txt 
+
+real	1m52.733s
+user	0m26.625s
+sys	1m25.423s
+
+Analysis: It turns out sfrobu takes much more time than sfrob, especially when dealing with large files. So using system calls in unbuffered version are less efficient than directly using buffered getchar() and putchar().
+
+Using the strace command to test the program:
+$ strace -c -o sout.txt ./sfrobu <test2.txt >output2.txt
+$ strace -c -o sout2.txt ./sfrobu <test3.txt >output2.txt
+Comparing these two files, I see that the system calls mmap, mprotect, munmap, and brk may be in charge of allocating memories. They may take in the length of memory, offset of memory, and the actual starting address of memory as arguments.
+
+
+
+
+
