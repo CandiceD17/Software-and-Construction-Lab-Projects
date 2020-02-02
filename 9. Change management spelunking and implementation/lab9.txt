@@ -1,0 +1,122 @@
+First, go to the directory:
+$ cd ~eggert/src/gnu/emacs-CS-35L
+
+1. Disk space:
+$ du -sh .
+Output: 509M	.
+Explanation:
+The du command prints amount of space used by this specific directory. 
+The -s option prints the total size for this particular directory, not a list of separate size for all files in this directory.
+$ du -sh ./.git
+Output: 350M	./.git
+Explanation: 
+This command prints the used disk space for files under .git directory.
+$ du -h . | sort -rh | head -5
+Output: 
+509M	.
+350M	./.git
+342M	./.git/objects
+335M	./.git/objects/pack
+71M	./lisp
+Analysis:
+From this output we can see that .git directory, especially the files inside .git/objects, occupies the most disk space.
+This is because all the commited files in this emacs-CS-35L directory, including the current ones and all their previous versions, are stored as an object in .git. 
+Also, this directory keeps track of the information about each commit and the revelant file structures in a tree.
+So it is natural that it occupies the most disk space.
+
+2. Local and remote branches:
+$ git branch | wc -l ////
+OUtput: 176
+This command counts the local branches stored in refs/heads
+$ git branch -r | wc -l
+Output: 177
+This command counts the remote branches stored in refs/remotes
+
+3. Remote repositories:
+$ git remote -v
+origin	https://git.savannah.gnu.org/git/emacs.git (fetch)
+origin	https://git.savannah.gnu.org/git/emacs.git (push)
+This commands shows the tracked remote repositories. And the -v commands shows the remote url after name.
+
+4. 10 newest local branches
+$ git for-each-ref --sort=-committerdate refs/heads/ --format='%(refname)' | head -10 | sed 's/refs\/heads\///g'
+Output:
+master
+scratch/joaot/make-completion-at-point-function
+feature/windows-with-utils
+scratch/completion-api
+scratch/a-modest-completion-redesign-proposal
+scratch/fido-mode
+feature/gnus-select2
+feature/extend_face_id
+scratch/jit-lock-antiblink-cleaned-up
+emacs-26
+Explanation:
+The for-each-ref command has an option --sort=<key>, so we can use this to sort the local branches stored in refs/heads by their committerdate (the last time a committer modified this branch).
+The --format=<format> specifies what we want to print. In this case, we only need to know the refname, or the branch name.
+Then we use sed to delete the prefix refs/heads to keep only the branch name.
+
+5. Number of commits in the master branch
+$ git log --oneline | wc -l
+Output: 139583
+Explanation:
+The --oneline option keeps each log of commit to one line, then counting the number of lines gives us the number of commits done to our current branch (master).
+
+6. Percent of other commits in the master branch
+$ git rev-list --all --count
+143910
+139583/143910=96.99%
+
+
+7. Most commits after 2013
+$ git shortlog -sn --since="01 Jan 2013" | head -10
+Output:
+  3691  Eli Zaretskii
+  3644  Glenn Morris
+  3604  Paul Eggert
+  1806  Lars Ingebrigtsen
+  1784  Stefan Monnier
+  1571  Michael Albinus
+   619  Dmitry Gutov
+   576  Noam Postavsky
+   471  Alan Mackenzie
+   469  Juri LinkovExplanation:
+The shortlog command summerizes git log output. -s option summerizes the number of commits, -n sorts the output by number of commits per author. Then --since= makes sure to count the commits newer than 2013.
+
+8. Draw the commit graph
+Go to commit 4ea37c2b8b0c5a68fde59770c3536195e0972217:
+Look at the lower window with details of this commit, I find out that its children are the next two commit to investigate: 
+commit 977cd6cb28a37744966ec62f70cf62659f6f302a and commit 625cee531623feddbe3174fad52c7db96ec60bb3 (this is a start of emacs-26 release branch)
+Then, follow the same process, I can find that 5490ccc5ebf39759dfd084bbd31f464701a3e775 commits a change in origin/emacs-26, then 0c06b93c1e467debd401eb0b3be4652fde14fa95 merges that lineage of changes to master branch.
+820739bbb572b30b6ce45756c9960e48dca859af is a parent of 00e4e3e9d273a193620c3a4bb4914e555cb8e343.
+Also, 49cd561dc62ea6b3fbedab7aef0f020733f4cf09 is a parent of abcb2e62dae6aa26308f7ac9efc89247f89cbe65, which merges origin/emacs-26 to the master branch.
+98ac36efe4ce4bd3a0bca76fc73ce6c7abaa4371 conducts another merge from origin/emacs-26 to the master branch.
+So the commit graph is:
+
+4ea37c2b8b0c5a68fde59770c3536195e0972217
+|                                       \
+|                                        \
+977cd6cb28a37744966ec62f70cf62659f6f302a  625cee531623feddbe3174fad52c7db96ec60bb3 (emacs-26 branch)
+|                                                       |
+|                                                       ...
+...                                       5490ccc5ebf39759dfd084bbd31f464701a3e775
+|                                                        |
+|________________________(merge)_________________________| 0c06b93c1e467debd401eb0b3be4652fde14fa95
+|                                                          \
+...                                           820739bbb572b30b6ce45756c9960e48dca859af
+|                                                          |
+|                                             00e4e3e9d273a193620c3a4bb4914e555cb8e343
+...                                                       ...
+|                                                            \
+|                                                 49cd561dc62ea6b3fbedab7aef0f020733f4cf09
+...                                                           /
+|                                                          /
+|________________________(merge)_________________________| 00e4e3e9d273a193620c3a4bb4914e555cb8e343
+|                                                        |
+|                                                       ...
+...                                                      |
+|________________________(merge)_________________________| 98ac36efe4ce4bd3a0bca76fc73ce6c7abaa4371
+|
+...
+Influence to neighborhood:
+If we merge a branch with conflicts, we have to fix one of the branch to remove the conflicts. If we merge two different branches successfully, the commits of two branches will be incorperated together. And changing the parents of a branch will affect later performance of its corresponding child.
