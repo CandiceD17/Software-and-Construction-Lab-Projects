@@ -1,0 +1,150 @@
+#!/bin/sh
+
+fir=$1
+sec=$2
+
+if [ "$fir" == "-r" ]
+then
+  fir=$2
+  sec=""
+  recursion="true"
+fi
+
+if [ -z $fir ]
+then
+  fir="."
+fi
+
+if [[ $fir =~ ^- ]]
+then
+  echo "the operand cannot begin with '-'"
+  exit 1
+fi
+
+fir=`echo $fir | sed 's/\/$//g'`
+
+if [ ! -d $fir ]
+then
+  echo "$1 is not a directory" >&2
+  exit 1
+fi
+
+if [ -n "$sec" ]
+then
+  echo "cannot pass in two or more operands" >&2
+  exit 1
+fi
+
+if [ ! -r $fir ]
+then
+  echo "$fir is not readable" >&2
+  exit 0
+fi
+
+function basic(){
+fi=$1
+path=$2
+cd $fi
+l=`ls -a | sort`
+for f in $l
+do
+  if [ -d "$f" ]
+  then
+    slash="true"
+  else
+    slash=""
+  fi
+
+  char=`echo "$f" | grep -oE "[^A-Za-z0-9\._]" | grep -E "[^-]"`
+  if [ -n "$char" ]
+  then
+    if [ $slash ]
+    then
+     echo "$path/$f/"
+    else
+     echo "$path/$f"
+    fi
+    continue
+  fi
+  
+  if [[ $f =~ ^- ]]
+  then
+    if [ $slash ]
+    then
+     echo "$path/$f/"
+    else
+     echo "$path/$f"
+    fi
+    continue
+  fi
+  
+  if [ $f == "." -o $f == ".." ]
+  then
+    continue
+  elif [[ $f =~ ^\. ]]
+  then
+    if [ $slash ]
+    then
+     echo "$path/$f/"
+    else
+     echo "$path/$f"
+    fi   
+    continue
+  fi
+
+  count=`printf $f | wc -m`
+  if [ $count -gt 14 ]
+  then
+    if [ $slash ]
+    then
+     echo "$path/$f/"
+    else
+     echo "$path/$f"
+    fi
+    continue
+  fi
+done
+
+
+print=`ls -a | sort -f | uniq -iD`
+for p in $print
+do
+  if [ -d $p ]
+  then
+    echo "$path/$p/"
+  else
+    echo "$path/$p"
+  fi
+done
+}
+
+function recur(){
+one=$1
+basic $one $2
+list=`find -maxdepth 1 -mindepth 1 -type d | sed 's/^\.\///g' | sed '/^$/d'`
+if [ -z "$list" ]
+then
+  cd ..
+  return
+fi
+for temp in $list
+do
+  if [ -r $temp ]
+  then
+    para=""$2"/"$temp""
+    recur $temp $para
+    para=$2
+  else
+    echo "$temp is not readable" >&2
+    continue
+  fi
+done
+cd ..
+}
+
+if [ $recursion ]
+then
+  recur $fir $fir
+else
+  basic $fir $fir
+fi

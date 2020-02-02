@@ -1,0 +1,13 @@
+#!/bin/sh
+
+sed -E 's/\?|<u>|<\/u>//g' | \
+grep -oP "(?<=<td).*(?=<\/td>)" | \
+sed -E 's/[^>]*>//' | \
+sed "s/\`/\'/g" | \
+tr A-Z a-z | \
+sed "/[^pk'mnwlhaeiou ]/d" | \
+sed "s/ /\n/g" | \
+sed "/^$/d" | \
+sort -u
+
+
