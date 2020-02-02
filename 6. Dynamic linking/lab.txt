@@ -68,7 +68,7 @@ xargs
 I write a shell script to invoke ldd command on each of these files:
 
 #!/bin/sh                                                                       
-list=$(ls /usr/bin | awk '(NR-205123245)%251 == 0')
+list=$(ls /usr/bin | awk '(NR-*********)%251 == 0')
 for i in $list
 do
   echo $i
