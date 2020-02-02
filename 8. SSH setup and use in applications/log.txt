@@ -1,0 +1,78 @@
+First, set up the beaglebone to connect it with my computer by following the step on piazza.
+
+1. Log in to the Beaglebone
+$ sudo ssh root@192.168.7.2
+Update database:
+~# sudo apt-get update
+~# sudo apt-get install xauth
+~# sudo apt-get install xvfb
+~# sudo apt-get install firefox-esr-l10n-en-gb 
+
+
+2. Connect to the Wifi
+Following the instruction on piazza:
+~# connmanctl
+connmanctl> enable wifi
+connmanctl> scan wifi
+connmanctl> services
+Note down the identifier for CR3760-wifi:
+wifi_2cf7f10678bc_4352333736302d77696669_managed_psk
+connmanctl> agent on
+Using the identifier we saved, connect to CR3760:
+connmanctl> connect wifi_2cf7f10678bc_4352333736302d77696669_managed_psk
+Passphrase? 3760ClassNet
+connmanctl> quit
+And my beaglebone is successfully connected to CR3760.
+
+
+3. Create a new user for my partner in Beaglebone
+My partner's name is Mingyang Zhang, and his uid is 405170429
+Create his user name in the directory /home/Mario:
+~# sudo useradd -d /home/Mario -m Mario
+
+Then, create his password:
+~# sudo passwd Mario
+I generated his password as 0624.
+
+After this, create a directory .ssh under my directory:
+~# cd /home/Mario
+/home/Mario# sudo mkdir .ssh
+
+Then, transfer the ownership of this directory to my partner:
+/home/Mario# sudo chown -R Mario .ssh
+
+Use chmod 700 to give him permission to read, write and execute:
+/home/Mario# sudo chmod 700 .ssh
+
+Finally, use the command ifconfig to generate my address for my partner
+/home/Mario# ifconfig
+My inet addr under the wlan0 is 10.97.85.85
+And my partner does the same thing for me.
+
+
+4. Log in to my partner's beaglebone
+Generate private and public keys using:
+$ ssh-keygen
+And type enter for passphrase (empty passphrase).
+
+Then, the output tells me that my identification has been saved in /root/.ssh/id_rsa. And my public key has been saved in /root/.ssh/id_rsa.pub.
+
+My partner runs ifconfig on his terminal, and generates his inet address 10.97.85.86
+Then, push the public key to his server:
+/home/Candice# ssh-copy-id -i Rui@10.97.85.86
+And enter my password:1117
+And my public key has been saved to his server.
+
+Then, I add my private key to ssh-agent:
+/home/Candice# eval `ssh-agent`
+/home/Candice# ssh-agent
+
+Finally, I can log in to my partner's server:
+/home/Candice# ssh -X Rui@10.97.85.86
+$ xeyes
+And I get a graphical window on my display.
+I could also run other commands on his server, for example:
+$ mkdir test
+$ ls
+test
+Then I can find my newly-created directory test.
