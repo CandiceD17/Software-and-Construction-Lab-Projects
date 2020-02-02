@@ -1,0 +1,14 @@
+Q1:
+I think this patch improves the performance of ls. It is more user-friendly, because the users would notice that the later occurance of an option overwrites the previous one. This will improve the efficiency of ls command: users can write a new option to overwrite the previous one than simply deleting it.
+
+Q2:
+People getting used to use the old one may not be comfortable with the new patched version that the command ls -a -A will not display . and .. Maybe someone wants to traverse through the entire directory (including the parent directory), and this modification will make ls -a -A inappropriate for this kind of traversal.
+
+Q3:
+When executing the command $ python randline.py /dev/null, there would be an error message showing that "IndexError: list index out of range". Also, the traceback module is invoked to show the part of the execution that the error happens. (error happened in chooseline() and seq)
+
+Q4:
+When executing the command $ python3 randline.py test, there is an error message showing that "SyntaxError: invalid syntax". This is because "except IOError as (errno, strerror)" is only executable in python2 and is removed as an obscure syntax in python3.
+
+Q5:
+shuf.py works successfully if my script is invoked with python2. This may due to that all the libraries and expressions I used are compatible in both python2 and python3.

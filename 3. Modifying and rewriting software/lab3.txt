@@ -1,0 +1,57 @@
+$ is the shell command I typed in the terminal
+// is the explanation or output for that command
+
+$ /usr/bin/ls -a -A
+//This command shows all the sub-directory inside the currenct directory, including . and ..
+$ /usr/bin/ls --version
+//ls (GNU coreutils) 8.22
+Copyright (C) 2013 Free Software Foundation, Inc.
+$ scp coreutils-8.29.tar.xz classrui@lnxsrv07.seas.ucla.edu:~/35L
+//copy the downloaded version of Coreutils 8.29 into linux server
+$ wget ftp://ftp.gnu.org/gnu/coreutils/coreutils-8.29.tar.xz.sig
+$ wget https://ftp.gnu.org/gnu/gnu-keyring.gpg
+$ gpg --verify --keyring ./gnu-keyring.gpg coreutils-8.29.tar.xz.sig
+// The verification is successful.
+gpg: Signature made Wed Dec 27 10:29:05 2017 PST using RSA key ID 306037D9
+gpg: /u/eng/class/classrui/.gnupg/trustdb.gpg: trustdb created
+
+$ tar -xJvf coreutils-8.29.tar.xz
+//Uncompress the file and download coreutils-8.29 to current position
+$ mkdir ~/coreutilsinstall
+//Create a directory to install core utils
+$ cd coreutils-8.29/
+$ less INSTALL
+//read this file to figure out how to run the configure and make command
+"You can specify an installation prefix other than '/usr/local' by giving
+'configure' the option '--prefix=PREFIX', where PREFIX must be an
+absolute file name."
+$ ./configure --prefix=/u/eng/class/classrui/coreutilsInstall
+//The system checks dependencies and systems to generate a Makefile for the make command.
+//At last, the system output config.status: creating po/Makefile
+$ make
+//This generates an executable file in current directory
+$ make install
+//This creates an executable file in the prefix path specified in configure, in this case: ~/coreutilsInstall
+$ cd src
+$ ./ls -a -A
+//. and .. are still in the output, so this bug still exists.
+$ emacs patch_file
+//copy the patch Message #10 into this file
+$ patch -p1<patch_file
+//patching file src/ls.c
+Hunk #1 succeeded at 1900 (offset -3 lines).
+The pnum is number of directory needed to be ignored when finding the file to be patched. Since the patch is "--- a/src/ls.c +++ b/src/ls.c", we just need to ignore a or b to search for src in the current directory. So use -p1.
+$ make
+//rebuild the patched ls.c
+//The make command recursively checks all the file in the subdirectories and decide whether they need to be recompiled again. It seems to update ls.o under src and update its man page.
+
+$ cd src
+$ ./ls -a -A
+//Now that the ls command with -A at the end does not output any . and .. This indicates that the bug is fixed
+$ ./ls -a
+//The output still contains . and ..
+$ ./ls -A -a
+// The output still contains . and .. This means that the -a command at the end overrides -A.
+$ cd ~//coreutilsInstall/bin
+$ ./ls -a -A
+//The output still contains . and .. The bug in this unmodified version is not fixed by the patch.
