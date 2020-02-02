@@ -1,5 +1,3 @@
-Rui Deng 205123245
-
 1. Compile, build and run the program
 $ wget https://web.cs.ucla.edu/classes/fall19/cs35L/assign/simpgmp.c
 $ gcc -o simpgmp simpgmp.c -lgmp
