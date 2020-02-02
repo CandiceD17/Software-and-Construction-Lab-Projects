@@ -1,0 +1,117 @@
+Rui Deng 205123245
+
+1. Compile, build and run the program
+$ wget https://web.cs.ucla.edu/classes/fall19/cs35L/assign/simpgmp.c
+$ gcc -o simpgmp simpgmp.c -lgmp
+With the lgmp flag, it compiles successfully.
+
+
+2. Computer power of 2s
+After looking at the c source code, I find out that simpgmp takes one argument, which is the exponent of 2 in the expression. So, in order to calculate 2**24, I typed:
+$ ./simpgmp 24
+Output: 16777216
+Then, use the output to calculate 2**(2**24):
+$ ./simpgmp 16777216 > exp.txt
+And the output does start with 1818 and ends with 7536.
+$ wc -m exp.txt
+Output: 5050447 exp.txt
+The output of wc command is 1 character greater than 5,050,446, because the newline character at the end of file is also counted as a character here. So the number indeed has 5,050,446 digits.
+
+
+3. See dynamnic libraries
+$ ldd simpgmp
+Output: linux-vdso.so.1 =>  (0x00007ffc93596000)
+	libgmp.so.10 => /lib64/libgmp.so.10 (0x00007fd75ea61000)
+	libc.so.6 => /lib64/libc.so.6 (0x00007fd75e693000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007fd75ecd9000)
+
+The files end with .so are all dynamic libraries. 
+linux-vdso.so is the Virtual Dynamic Shared Object; 
+libgmp.so is the library GMP that this program links to; 
+lib.c is the standard c library; 
+and the last line, ld-linux-x86-64.so.2, specifies the dynamic linker this program uses.
+
+
+4. strace and system calls
+$ strace ./simpgmp
+This is a series of system calls related to libgmp.so.10:
+open("/lib64/libgmp.so.10", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\200\304\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=495720, ...}) = 0
+mmap(NULL, 2584736, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fefa00dd000
+mprotect(0x7fefa0153000, 2093056, PROT_NONE) = 0
+mmap(0x7fefa0352000, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x75000) = 0x7fefa0352000
+close(3)                                = 0
+
+The system call open() and read() loads the dynamic library to be prepared for linking. 
+Then fstat() examines the type of files and size of this library. 
+Then, mmap() allocates enough memory to store the library files, and mprotect() protects the allocated memory. 
+After that, the second mmap() command seems to write the library files to the memory, since it has the PROT_READ|PROT_WRITE flag. 
+After all processing and linking the dynamic library files, the system call close(3) closes these files.
+Other system call related to dynamic libraries shows the similar pattern.
+
+
+5. Get commands to investigate
+$ ls /usr/bin | awk '(NR-205123245)%251 == 0'
+And it outputs: 
+abrt-action-check-oops-for-hw-error
+config_data
+file
+gzexe
+kmmatch
+mktexmf
+papi_xml_event_info
+rcs
+stty
+xargs
+
+
+6. Invoke ldd command
+I write a shell script to invoke ldd command on each of these files:
+
+#!/bin/sh                                                                       
+list=$(ls /usr/bin | awk '(NR-205123245)%251 == 0')
+for i in $list
+do
+  echo $i
+  path=`which $i`
+  ldd $path
+done
+
+And the output is in the form of:
+abrt-action-check-oops-for-hw-error
+	not a dynamic executable
+config_data
+	not a dynamic executable
+file
+	linux-vdso.so.1 =>  (0x00007fffdd31d000)
+	libmagic.so.1 => /usr/lib64/libmagic.so.1 (0x00007f067a3d0000)
+	libz.so.1 => /usr/lib64/libz.so.1 (0x00007f067a1ba000)
+	libc.so.6 => /usr/lib64/libc.so.6 (0x00007f0679dec000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007f067a5ed000)
+...
+I have error messages for command abrt-action-check-oops-for-hw-error, config_data, gzexe, and mktexmf. 
+The four error messages are the same, saying that "not a dynamic executable". 
+This is because ldd command only prints the shared library dependencies, and these commands do not call or reference to any dynamically-linked libraries, and thus "not a dyanmic executable".
+
+7. Sorted list of libraries:
+I call the shell script with grep to output only the name of shared libraries.
+./invoke_ldd.sh | grep -oP "^.*(?= =>)" | sort -u
+The output is: 
+	libQtCore.so.4
+	libc.so.6
+	libdl.so.2
+	libgcc_s.so.1
+	libglib-2.0.so.0
+	libgthread-2.0.so.0
+	libm.so.6
+	libmagic.so.1
+	libpapi.so.5.2.0.0
+	libpcre.so.1
+	libpfm.so.4
+	libpthread.so.0
+	librt.so.1
+	libsensors.so.4
+	libstdc++.so.6
+	libz.so.1
+	linux-vdso.so.1
